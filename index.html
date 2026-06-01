@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>M8 Center — AI Агентство</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Onest:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: rgba(255,255,255,0.06);
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --gold: #f59e0b;
+    --text: #f0f0f8;
+    --muted: #6b7280;
+    --glow: rgba(124,58,237,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Onest', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(124,58,237,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(6,182,212,0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 0 80px; }
+
+  /* Header */
+  .header {
+    padding: 32px 20px 24px;
+    text-align: center;
+    position: relative;
+  }
+
+  .logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 24px var(--glow);
+  }
+
+  .logo-text {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 40%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    gap: 1px;
+    margin: 0 20px 28px;
+    background: var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .stat {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    background: var(--surface);
+  }
+
+  .stat-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* Section */
+  .section { padding: 0 20px; margin-bottom: 28px; }
+
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 14px;
+    padding-left: 2px;
+  }
+
+  /* Product cards */
+  .product-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    -webkit-user-select: none;
+  }
+
+  .product-card:active { transform: scale(0.98); }
+
+  .product-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
+
+  .product-card.featured {
+    border-color: rgba(124,58,237,0.4);
+    background: linear-gradient(135deg, rgba(124,58,237,0.08), var(--card));
+  }
+
+  .product-card.featured::after {
+    content: 'ХИТ';
+    position: absolute;
+    top: 14px; right: 14px;
+    background: var(--accent);
+    color: white;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .product-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .product-icon {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .icon-purple { background: rgba(124,58,237,0.15); }
+  .icon-cyan { background: rgba(6,182,212,0.12); }
+  .icon-gold { background: rgba(245,158,11,0.12); }
+  .icon-green { background: rgba(16,185,129,0.12); }
+
+  .product-info { flex: 1; min-width: 0; }
+
+  .product-name {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .product-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .product-price {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text);
+  }
+
+  .product-price span {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--muted);
+    font-family: 'Onest', sans-serif;
+  }
+
+  .product-days {
+    font-size: 11px;
+    color: var(--accent2);
+    background: rgba(6,182,212,0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(6,182,212,0.2);
+  }
+
+  .product-features {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .feature-tag {
+    font-size: 11px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.04);
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  /* Process */
+  .process-steps { display: flex; flex-direction: column; gap: 0; }
+
+  .process-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .process-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 19px; top: 40px;
+    width: 2px; height: calc(100% - 4px);
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    opacity: 0.3;
+  }
+
+  .step-num {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-content { padding: 8px 0 24px; }
+
+  .step-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* Reviews */
+  .review-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+
+  .review-top {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+
+  .reviewer-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+
+  .reviewer-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .reviewer-biz { font-size: 11px; color: var(--muted); }
+
+  .stars { color: var(--gold); font-size: 12px; margin-left: auto; letter-spacing: 1px; }
+
+  .review-text { font-size: 13px; color: #9ca3af; line-height: 1.6; font-style: italic; }
+
+  /* CTA */
+  .cta-section {
+    padding: 0 20px;
+    margin-bottom: 20px;
+  }
+
+  .cta-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(6,182,212,0.08));
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 24px;
+    padding: 24px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-card::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at center, rgba(124,58,237,0.05) 0%, transparent 60%);
+  }
+
+  .cta-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    position: relative;
+  }
+
+  .cta-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; position: relative; }
+
+  .cta-slots {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--gold);
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .cta-slots::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .btn-primary {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), #9333ea);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(124,58,237,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
+    -webkit-user-select: none;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+    box-shadow: 0 4px 16px rgba(124,58,237,0.2);
+  }
+
+  .btn-secondary {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    font-family: 'Onest', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.15s;
+    -webkit-user-select: none;
+  }
+
+  .btn-secondary:active { background: var(--card); }
+
+  /* Guarantee */
+  .guarantee {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(16,185,129,0.06);
+    border: 1px solid rgba(16,185,129,0.15);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin: 0 20px 28px;
+  }
+
+  .guarantee-icon { font-size: 20px; flex-shrink: 0; }
+  .guarantee-text { font-size: 12px; color: #6ee7b7; line-height: 1.4; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-icon { font-size: 40px; text-align: center; margin-bottom: 12px; }
+
+  .modal-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .modal-price {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    text-align: center;
+    color: var(--accent2);
+    margin-bottom: 16px;
+  }
+
+  .modal-features { margin-bottom: 24px; }
+
+  .modal-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: #d1d5db;
+  }
+
+  .modal-feature:last-child { border-bottom: none; }
+  .check { color: #10b981; font-size: 16px; }
+
+  /* Fade in */
+  .fade-in { animation: fadeIn 0.4s ease both; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in:nth-child(2) { animation-delay: 0.05s; }
+  .fade-in:nth-child(3) { animation-delay: 0.1s; }
+  .fade-in:nth-child(4) { animation-delay: 0.15s; }
+
+  /* Payment info */
+  .payment-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: var(--card);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .payment-row b { color: var(--text); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header fade-in">
+    <div class="logo-wrap">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">M8 Center</div>
+    </div>
+    <div class="header-sub">AI Агентство · Telegram боты · Автоматизация</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats fade-in">
+    <div class="stat">
+      <span class="stat-num">50+</span>
+      <span class="stat-label">Проектов</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">3 дня</span>
+      <span class="stat-label">Срок бота</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">30 дн</span>
+      <span class="stat-label">Поддержка</span>
+    </div>
+  </div>
+
+  <!-- Products -->
+  <div class="section fade-in">
+    <div class="section-title">Наши продукты</div>
+
+    <div class="product-card" onclick="openModal('vizitka')">
+      <div class="product-top">
+        <div class="product-icon icon-cyan">🪄</div>
+        <div class="product-info">
+          <div class="product-name">Бот-визитка</div>
+          <div class="product-desc">Telegram бот вместо сайта. Услуги, цены, заявки — всё в одном месте</div>
+        </div>
+      </div>
+      <div class="product-footer">
+        <div class="product-price">25 000 ₽ <span>от</span></div>
+        <div class="product-days">3 дня</div>
+      </div>
+      <div class="product-features">
+        <span class="feature-tag">Меню услуг</span>
+        <span class="feature-tag">Приём заявок</span>
+        <span class="feature-tag">Контакты</span>
+      </div>
+    </div>
+
+    <div class="product-card featured" onclick="openModal('booking')">
+      <div class="product-top">
+        <div class="product-icon icon-purple">📅</div>
+        <div class="product-info">
+          <div class="product-name">Бот для записи</div>
+          <div class="product-desc">Онлайн-запись клиентов 24/7 с напоминаниями и управлением расписанием</div>
+        </div>
+      </div>
+      <div class="product-footer">
+        <div class="product-price">35 000 ₽ <span>от</span></div>
+        <div class="product-days">5 дней</div>
+      </div>
+      <div class="product-features">
+        <span class="feature-tag">Запись онлайн</span>
+        <span class="feature-tag">Напоминания</span>
+        <span class="feature-tag">Расписание</span>
+        <span class="feature-tag">CRM</span>
+      </div>
+    </div>
+
+    <div class="product-card" onclick="openModal('automation')">
+      <div class="product-top">
+        <div class="product-icon icon-gold">⚙️</div>
+        <div class="product-info">
+          <div class="product-name">n8n Автоматизация</div>
+          <div class="product-desc">Убираем рутину навсегда. Отчёты, уведомления, интеграции — работают сами</div>
+        </div>
+      </div>
+      <div class="product-footer">
+        <div class="product-price">35 000 ₽ <span>от</span></div>
+        <div class="product-days">5-7 дней</div>
+      </div>
+      <div class="product-features">
+        <span class="feature-tag">Bitrix24</span>
+        <span class="feature-tag">amoCRM</span>
+        <span class="feature-tag">Google Sheets</span>
+        <span class="feature-tag">Отчёты</span>
+      </div>
+    </div>
+
+    <div class="product-card" onclick="openModal('ai')">
+      <div class="product-top">
+        <div class="product-icon icon-green">🤖</div>
+        <div class="product-info">
+          <div class="product-name">AI Агент</div>
+          <div class="product-desc">Умный помощник для бизнеса. Отвечает клиентам, обрабатывает заявки, учится</div>
+        </div>
+      </div>
+      <div class="product-footer">
+        <div class="product-price">60 000 ₽ <span>от</span></div>
+        <div class="product-days">7-14 дней</div>
+      </div>
+      <div class="product-features">
+        <span class="feature-tag">GPT/Claude</span>
+        <span class="feature-tag">Память</span>
+        <span class="feature-tag">Интеграции</span>
+        <span class="feature-tag">Обучение</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Guarantee -->
+  <div class="guarantee fade-in">
+    <div class="guarantee-icon">🛡️</div>
+    <div class="guarantee-text"><b>Гарантия 30 дней.</b> Правки и доработки после сдачи — бесплатно. Предоплата 50%, остаток после результата.</div>
+  </div>
+
+  <!-- Process -->
+  <div class="section fade-in">
+    <div class="section-title">Как работаем</div>
+    <div class="process-steps">
+      <div class="process-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Обсуждаем задачу</div>
+          <div class="step-desc">Разбираем ваш бизнес, цели и подбираем оптимальное решение</div>
+        </div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Предоплата 50%</div>
+          <div class="step-desc">Закрепляем ваш слот и начинаем работу на следующий день</div>
+        </div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Сдаём результат</div>
+          <div class="step-desc">В срок передаём готовый продукт и обучаем как пользоваться</div>
+        </div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Поддержка 30 дней</div>
+          <div class="step-desc">Остаток оплаты и месяц правок. Вы остаётесь довольны</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews -->
+  <div class="section fade-in">
+    <div class="section-title">Отзывы клиентов</div>
+
+    <div class="review-card">
+      <div class="review-top">
+        <div class="reviewer-avatar">💈</div>
+        <div>
+          <div class="reviewer-name">Максим К.</div>
+          <div class="reviewer-biz">Барбершоп "Форма"</div>
+        </div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <div class="review-text">"Поставили бот для записи — телефон перестал звонить по ночам. Клиенты записываются сами, напоминания приходят автоматически. Окупился за первую неделю."</div>
+    </div>
+
+    <div class="review-card">
+      <div class="review-top">
+        <div class="reviewer-avatar">🏪</div>
+        <div>
+          <div class="reviewer-name">Анна В.</div>
+          <div class="reviewer-biz">Онлайн-магазин</div>
+        </div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <div class="review-text">"Настроили автоматические отчёты — 3 часа в день освободилось. Данные из разных систем сами собираются и приходят в Telegram каждое утро."</div>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section fade-in">
+    <div class="cta-card">
+      <div class="cta-title">Готовы обсудить ваш проект?</div>
+      <div class="cta-sub">Бесплатная консультация. Расскажем что подойдёт именно вашему бизнесу.</div>
+      <div class="cta-slots">Осталось 2 свободных слота на этой неделе</div>
+      <button class="btn-primary" onclick="orderNow()">Написать менеджеру</button>
+      <button class="btn-secondary" onclick="showPaymentInfo()">Условия оплаты</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <div class="modal-handle"></div>
+    <div class="modal-icon" id="modal-icon"></div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-price" id="modal-price"></div>
+    <div class="modal-features" id="modal-features"></div>
+    <button class="btn-primary" onclick="orderThis()">Заказать этот продукт</button>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="payment-modal" onclick="closePaymentModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-icon">💳</div>
+    <div class="modal-title" style="margin-bottom:20px">Условия оплаты</div>
+    <div class="payment-row">💰 <div><b>Предоплата 50%</b><br>При старте работ</div></div>
+    <div class="payment-row">✅ <div><b>Остаток 50%</b><br>После сдачи результата</div></div>
+    <div class="payment-row">🏦 <div><b>Альфа Банк</b><br>+7 901 772 55 91<br>Рустамов Ахмаджон Юнусович</div></div>
+    <div class="payment-row">🛡️ <div><b>Гарантия 30 дней</b><br>Правки после сдачи бесплатно</div></div>
+    <button class="btn-primary" style="margin-top:16px" onclick="closePaymentModal()">Понятно</button>
+  </div>
+</div>
+
+<script>
+  // Telegram Web App init
+  if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    document.documentElement.style.setProperty('--bg', '#0a0a0f');
+  }
+
+  const products = {
+    vizitka: {
+      icon: '🪄', title: 'Бот-визитка', price: 'от 25 000 ₽',
+      features: ['Красивое главное меню с кнопками', 'Страницы: о нас, услуги, цены', 'Форма приёма заявок', 'Уведомления вам о новых заявках', 'Кнопка связи с менеджером', 'Срок: 3 рабочих дня', 'Поддержка 30 дней']
+    },
+    booking: {
+      icon: '📅', title: 'Бот для записи', price: 'от 35 000 ₽',
+      features: ['Выбор услуги, мастера и времени', 'Автоматические напоминания за 2 часа', 'Управление расписанием', 'Список записей и их отмена', 'Уведомления администратору', 'Срок: 5 рабочих дней', 'Поддержка 30 дней']
+    },
+    automation: {
+      icon: '⚙️', title: 'n8n Автоматизация', price: 'от 35 000 ₽',
+      features: ['Анализ вашей рутины', 'Подключение к Google Sheets / CRM', 'Автоматические отчёты в Telegram', 'Уведомления о заявках и событиях', 'Интеграция Bitrix24 или amoCRM', 'Срок: 5-7 рабочих дней', 'Поддержка 30 дней']
+    },
+    ai: {
+      icon: '🤖', title: 'AI Агент', price: 'от 60 000 ₽',
+      features: ['Умный чат-бот на базе GPT или Claude', 'Помнит историю разговора', 'Отвечает на вопросы о вашем бизнесе', 'Принимает и обрабатывает заявки', 'Интеграция с вашими системами', 'Срок: 7-14 рабочих дней', 'Поддержка 30 дней']
+    }
+  };
+
+  let currentProduct = '';
+
+  function openModal(type) {
+    currentProduct = type;
+    const p = products[type];
+    document.getElementById('modal-icon').textContent = p.icon;
+    document.getElementById('modal-title').textContent = p.title;
+    document.getElementById('modal-price').textContent = p.price;
+    document.getElementById('modal-features').innerHTML = p.features.map(f =>
+      `<div class="modal-feature"><span class="check">✓</span>${f}</div>`
+    ).join('');
+    document.getElementById('modal').classList.add('active');
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('modal')) {
+      document.getElementById('modal').classList.remove('active');
+    }
+  }
+
+  function showPaymentInfo() {
+    document.getElementById('payment-modal').classList.add('active');
+  }
+
+  function closePaymentModal(e) {
+    if (!e || e.target === document.getElementById('payment-modal')) {
+      document.getElementById('payment-modal').classList.remove('active');
+    }
+  }
+
+  function orderThis() {
+    document.getElementById('modal').classList.remove('active');
+    setTimeout(orderNow, 300);
+  }
+
+  function orderNow() {
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.sendData(JSON.stringify({
+        action: 'order',
+        product: currentProduct || 'consultation'
+      }));
+    } else {
+      window.open('https://t.me/manager', '_blank');
+    }
+  }
+</script>
+</body>
+</html>
