@@ -3,851 +3,539 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Obsidian — AI Агентство</title>
+<title>Obsidian — Telegram боты и автоматизация</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Onest:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --card: #1a1a26;
-    --border: rgba(255,255,255,0.06);
-    --accent: #7c3aed;
-    --accent2: #06b6d4;
-    --gold: #f59e0b;
-    --text: #f0f0f8;
-    --muted: #6b7280;
-    --glow: rgba(124,58,237,0.3);
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Onest', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Background effect */
-  body::before {
-    content: '';
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(ellipse at 30% 20%, rgba(124,58,237,0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(6,182,212,0.05) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .container { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 0 80px; }
-
-  /* Header */
-  .header {
-    padding: 32px 20px 24px;
-    text-align: center;
-    position: relative;
-  }
-
-  .logo-wrap {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .logo-icon {
-    width: 44px; height: 44px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    box-shadow: 0 0 24px var(--glow);
-  }
-
-  .logo-text {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 22px;
-    font-weight: 900;
-    background: linear-gradient(135deg, #fff 40%, var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -0.5px;
-  }
-
-  .header-sub {
-    font-size: 13px;
-    color: var(--muted);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-
-  /* Stats bar */
-  .stats {
-    display: flex;
-    gap: 1px;
-    margin: 0 20px 28px;
-    background: var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-
-  .stat {
-    flex: 1;
-    padding: 14px 8px;
-    text-align: center;
-    background: var(--surface);
-  }
-
-  .stat-num {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    display: block;
-  }
-
-  .stat-label {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    margin-top: 2px;
-    display: block;
-  }
-
-  /* Section */
-  .section { padding: 0 20px; margin-bottom: 28px; }
-
-  .section-title {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 14px;
-    padding-left: 2px;
-  }
-
-  /* Product cards */
-  .product-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 10px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s;
-    -webkit-user-select: none;
-  }
-
-  .product-card:active { transform: scale(0.98); }
-
-  .product-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-  }
-
-  .product-card.featured {
-    border-color: rgba(124,58,237,0.4);
-    background: linear-gradient(135deg, rgba(124,58,237,0.08), var(--card));
-  }
-
-  .product-card.featured::after {
-    content: 'ХИТ';
-    position: absolute;
-    top: 14px; right: 14px;
-    background: var(--accent);
-    color: white;
-    font-family: 'Unbounded', sans-serif;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 6px;
-    letter-spacing: 0.5px;
-  }
-
-  .product-top {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 12px;
-  }
-
-  .product-icon {
-    width: 46px; height: 46px;
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-  }
-
-  .icon-purple { background: rgba(124,58,237,0.15); }
-  .icon-cyan { background: rgba(6,182,212,0.12); }
-  .icon-gold { background: rgba(245,158,11,0.12); }
-  .icon-green { background: rgba(16,185,129,0.12); }
-
-  .product-info { flex: 1; min-width: 0; }
-
-  .product-name {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 4px;
-    line-height: 1.3;
-  }
-
-  .product-desc {
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.5;
-  }
-
-  .product-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .product-price {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 16px;
-    font-weight: 900;
-    color: var(--text);
-  }
-
-  .product-price span {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--muted);
-    font-family: 'Onest', sans-serif;
-  }
-
-  .product-days {
-    font-size: 11px;
-    color: var(--accent2);
-    background: rgba(6,182,212,0.1);
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid rgba(6,182,212,0.2);
-  }
-
-  .product-features {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .feature-tag {
-    font-size: 11px;
-    color: var(--muted);
-    background: rgba(255,255,255,0.04);
-    padding: 3px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-  }
-
-  /* Process */
-  .process-steps { display: flex; flex-direction: column; gap: 0; }
-
-  .process-step {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    position: relative;
-  }
-
-  .process-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 19px; top: 40px;
-    width: 2px; height: calc(100% - 4px);
-    background: linear-gradient(to bottom, var(--accent), transparent);
-    opacity: 0.3;
-  }
-
-  .step-num {
-    width: 38px; height: 38px;
-    border-radius: 12px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Unbounded', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--accent);
-    flex-shrink: 0;
-    position: relative;
-    z-index: 1;
-  }
-
-  .step-content { padding: 8px 0 24px; }
-
-  .step-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 3px;
-  }
-
-  .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
-
-  /* Reviews */
-  .review-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 10px;
-  }
-
-  .review-top {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-  }
-
-  .reviewer-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-  }
-
-  .reviewer-name { font-size: 13px; font-weight: 500; color: var(--text); }
-  .reviewer-biz { font-size: 11px; color: var(--muted); }
-
-  .stars { color: var(--gold); font-size: 12px; margin-left: auto; letter-spacing: 1px; }
-
-  .review-text { font-size: 13px; color: #9ca3af; line-height: 1.6; font-style: italic; }
-
-  /* CTA */
-  .cta-section {
-    padding: 0 20px;
-    margin-bottom: 20px;
-  }
-
-  .cta-card {
-    background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(6,182,212,0.08));
-    border: 1px solid rgba(124,58,237,0.3);
-    border-radius: 24px;
-    padding: 24px 20px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .cta-card::before {
-    content: '';
-    position: absolute;
-    top: -50%; left: -50%;
-    width: 200%; height: 200%;
-    background: radial-gradient(ellipse at center, rgba(124,58,237,0.05) 0%, transparent 60%);
-  }
-
-  .cta-title {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 18px;
-    font-weight: 900;
-    margin-bottom: 8px;
-    line-height: 1.3;
-    position: relative;
-  }
-
-  .cta-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; position: relative; }
-
-  .cta-slots {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(245,158,11,0.1);
-    border: 1px solid rgba(245,158,11,0.2);
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 12px;
-    color: var(--gold);
-    margin-bottom: 16px;
-    position: relative;
-  }
-
-  .cta-slots::before {
-    content: '';
-    width: 6px; height: 6px;
-    background: var(--gold);
-    border-radius: 50%;
-    animation: pulse 1.5s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
-
-  .btn-primary {
-    display: block;
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--accent), #9333ea);
-    color: white;
-    border: none;
-    border-radius: 16px;
-    font-family: 'Unbounded', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    position: relative;
-    box-shadow: 0 8px 32px rgba(124,58,237,0.3);
-    transition: transform 0.15s, box-shadow 0.15s;
-    -webkit-user-select: none;
-  }
-
-  .btn-primary:active {
-    transform: scale(0.97);
-    box-shadow: 0 4px 16px rgba(124,58,237,0.2);
-  }
-
-  .btn-secondary {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    font-family: 'Onest', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.15s;
-    -webkit-user-select: none;
-  }
-
-  .btn-secondary:active { background: var(--card); }
-
-  /* Guarantee */
-  .guarantee {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    background: rgba(16,185,129,0.06);
-    border: 1px solid rgba(16,185,129,0.15);
-    border-radius: 14px;
-    padding: 12px 16px;
-    margin: 0 20px 28px;
-  }
-
-  .guarantee-icon { font-size: 20px; flex-shrink: 0; }
-  .guarantee-text { font-size: 12px; color: #6ee7b7; line-height: 1.4; }
-
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px);
-    z-index: 100;
-    align-items: flex-end;
-    justify-content: center;
-  }
-
-  .modal-overlay.active { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 24px 24px 0 0;
-    padding: 24px 20px 40px;
-    width: 100%;
-    max-width: 480px;
-    animation: slideUp 0.3s ease;
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  .modal-handle {
-    width: 40px; height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin: 0 auto 20px;
-  }
-
-  .modal-icon { font-size: 40px; text-align: center; margin-bottom: 12px; }
-
-  .modal-title {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 6px;
-  }
-
-  .modal-price {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 24px;
-    font-weight: 900;
-    text-align: center;
-    color: var(--accent2);
-    margin-bottom: 16px;
-  }
-
-  .modal-features { margin-bottom: 24px; }
-
-  .modal-feature {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    color: #d1d5db;
-  }
-
-  .modal-feature:last-child { border-bottom: none; }
-  .check { color: #10b981; font-size: 16px; }
-
-  /* Fade in */
-  .fade-in { animation: fadeIn 0.4s ease both; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .fade-in:nth-child(2) { animation-delay: 0.05s; }
-  .fade-in:nth-child(3) { animation-delay: 0.1s; }
-  .fade-in:nth-child(4) { animation-delay: 0.15s; }
-
-  /* Payment info */
-  .payment-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px;
-    background: var(--card);
-    border-radius: 12px;
-    margin-bottom: 8px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .payment-row b { color: var(--text); font-size: 13px; }
+:root {
+  --bg: #080810;
+  --s1: #0f0f1c;
+  --s2: #161625;
+  --bd: rgba(255,255,255,0.07);
+  --g: #c9a96e;
+  --g2: #e8c98a;
+  --glow: rgba(201,169,110,0.2);
+  --txt: #f0efe8;
+  --mut: #5a5870;
+  --dim: #3a384a;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* noise texture overlay */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.6}
+
+/* ambient glow */
+body::before{content:'';position:fixed;top:-30vh;left:50%;transform:translateX(-50%);width:80vw;height:60vh;background:radial-gradient(ellipse,rgba(201,169,110,0.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+.wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding-bottom:90px}
+
+/* ── HEADER ── */
+.hdr{padding:28px 20px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-gem{width:38px;height:38px;position:relative}
+.logo-gem svg{width:100%;height:100%}
+.logo-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.3px;color:var(--txt)}
+.hdr-badge{font-size:10px;color:var(--g);border:1px solid rgba(201,169,110,0.3);border-radius:20px;padding:4px 10px;letter-spacing:1px;text-transform:uppercase}
+
+/* ── HERO ── */
+.hero{padding:8px 20px 28px;text-align:center}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--g);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.hero-tag::before{content:'';width:5px;height:5px;background:var(--g);border-radius:50%;animation:blink 2s infinite}
+.hero h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1.15;letter-spacing:-0.8px;margin-bottom:10px}
+.hero h1 em{font-style:normal;color:var(--g)}
+.hero-sub{font-size:14px;color:var(--mut);line-height:1.6;max-width:320px;margin:0 auto}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);margin:0 20px 28px;border-radius:16px;overflow:hidden;border:1px solid var(--bd)}
+.stat{background:var(--s1);padding:14px 8px;text-align:center}
+.stat-n{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--g);display:block;line-height:1}
+.stat-l{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;display:block}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:8px;padding:0 20px;margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--mut);transition:.2s;white-space:nowrap}
+.tab.on{background:var(--g);color:#080810;border-color:var(--g);font-weight:700}
+
+/* ── SECTION ── */
+.sec{padding:0 20px;margin-bottom:24px}
+.sec-ttl{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
+
+/* ── SERVICE CARDS ── */
+.svc-list{display:flex;flex-direction:column;gap:8px}
+.svc{background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:16px;cursor:pointer;transition:border-color .2s,transform .15s;position:relative;overflow:hidden}
+.svc:active{transform:scale(.985)}
+.svc.hot{border-color:rgba(201,169,110,0.35)}
+.svc.hot::before{content:'ХИТ';position:absolute;top:12px;right:12px;background:var(--g);color:#080810;font-family:'Syne',sans-serif;font-size:9px;font-weight:800;padding:3px 8px;border-radius:5px;letter-spacing:.8px}
+.svc-row{display:flex;align-items:flex-start;gap:12px}
+.svc-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ico-a{background:rgba(201,169,110,.12)}
+.ico-b{background:rgba(99,102,241,.12)}
+.ico-c{background:rgba(20,184,166,.1)}
+.ico-d{background:rgba(239,68,68,.08)}
+.ico-e{background:rgba(34,197,94,.1)}
+.svc-body{flex:1;min-width:0}
+.svc-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px;color:var(--txt);line-height:1.3}
+.svc-desc{font-size:12px;color:var(--mut);line-height:1.45}
+.svc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)}
+.svc-price{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--txt)}
+.svc-price small{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:400;color:var(--mut)}
+.svc-days{font-size:11px;color:var(--g);background:rgba(201,169,110,.08);border:1px solid rgba(201,169,110,.2);padding:3px 10px;border-radius:20px}
+.svc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.tag{font-size:10px;color:var(--dim);background:rgba(255,255,255,.03);border:1px solid var(--bd);padding:3px 9px;border-radius:20px}
+
+/* ── PROCESS ── */
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:14px;position:relative}
+.step:not(:last-child)::after{content:'';position:absolute;left:17px;top:38px;width:2px;height:calc(100% - 12px);background:linear-gradient(to bottom,rgba(201,169,110,.25),transparent);z-index:0}
+.step-n{width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--g);flex-shrink:0;position:relative;z-index:1}
+.step-body{padding:7px 0 22px}
+.step-t{font-size:14px;font-weight:500;color:var(--txt);margin-bottom:3px}
+.step-d{font-size:12px;color:var(--mut);line-height:1.5}
+
+/* ── REVIEWS ── */
+.rev-list{display:flex;flex-direction:column;gap:8px}
+.rev{background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:16px}
+.rev-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rev-av{width:34px;height:34px;border-radius:50%;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.rev-who{flex:1}
+.rev-name{font-size:13px;font-weight:500;color:var(--txt)}
+.rev-biz{font-size:11px;color:var(--mut)}
+.rev-stars{color:var(--g);font-size:11px;letter-spacing:1px}
+.rev-txt{font-size:12px;color:#7a7890;line-height:1.6;font-style:italic}
+
+/* ── GUARANTEE ── */
+.guar{display:flex;gap:12px;align-items:flex-start;background:rgba(201,169,110,.05);border:1px solid rgba(201,169,110,.18);border-radius:14px;padding:14px 16px;margin:0 20px 24px}
+.guar-ico{font-size:22px;flex-shrink:0;margin-top:1px}
+.guar-txt{font-size:12px;color:#b8a882;line-height:1.6}
+.guar-txt b{color:var(--g)}
+
+/* ── CTA ── */
+.cta-wrap{padding:0 20px;margin-bottom:20px}
+.cta-box{background:linear-gradient(135deg,rgba(201,169,110,.1),rgba(201,169,110,.04));border:1px solid rgba(201,169,110,.25);border-radius:22px;padding:24px 20px;text-align:center;position:relative;overflow:hidden}
+.cta-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(201,169,110,.08),transparent 70%);pointer-events:none}
+.cta-t{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;letter-spacing:-.3px;position:relative}
+.cta-s{font-size:13px;color:var(--mut);margin-bottom:18px;line-height:1.5;position:relative}
+.cta-slots{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#e8c98a;background:rgba(201,169,110,.08);border:1px solid rgba(201,169,110,.2);border-radius:20px;padding:6px 14px;margin-bottom:18px;position:relative}
+.cta-slots::before{content:'';width:6px;height:6px;background:var(--g);border-radius:50%;animation:blink 1.2s infinite}
+.btn-main{display:block;width:100%;padding:15px;background:var(--g);color:#080810;border:none;border-radius:14px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:.15s;position:relative}
+.btn-main:active{transform:scale(.97);opacity:.9}
+.btn-sec{display:block;width:100%;padding:13px;background:transparent;color:var(--mut);border:1px solid var(--bd);border-radius:14px;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px;transition:.15s}
+.btn-sec:active{background:var(--s2)}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);z-index:200;align-items:flex-end;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--bd);border-radius:24px 24px 0 0;padding:20px 20px 44px;width:100%;max-width:480px;animation:up .3s ease}
+@keyframes up{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-pull{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 20px}
+.modal-ico{font-size:36px;text-align:center;margin-bottom:10px}
+.modal-ttl{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;text-align:center;margin-bottom:4px}
+.modal-price{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;text-align:center;color:var(--g);margin-bottom:18px}
+.modal-feats{margin-bottom:22px}
+.modal-feat{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd);font-size:13px;color:#c4c0d8}
+.modal-feat:last-child{border-bottom:none}
+.chk{color:var(--g);font-size:15px;flex-shrink:0}
+.pay-row{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--s2);border-radius:12px;margin-bottom:7px;font-size:12px;color:var(--mut)}
+.pay-row b{color:var(--txt);font-size:13px;display:block;margin-bottom:1px}
+
+/* ── ANIMS ── */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.fi{opacity:0;transform:translateY(18px);animation:fi .5s ease forwards}
+@keyframes fi{to{opacity:1;transform:none}}
+.fi:nth-child(1){animation-delay:.05s}
+.fi:nth-child(2){animation-delay:.1s}
+.fi:nth-child(3){animation-delay:.15s}
+.fi:nth-child(4){animation-delay:.2s}
+.fi:nth-child(5){animation-delay:.25s}
+.fi:nth-child(6){animation-delay:.3s}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="container">
-
-  <!-- Header -->
-  <div class="header fade-in">
-    <div class="logo-wrap">
-      <div class="logo-icon">⚡</div>
-      <div class="logo-text">Obsidian</div>
+<!-- HEADER -->
+<div class="hdr fi">
+  <div class="logo">
+    <div class="logo-gem">
+      <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="19,2 36,12 36,26 19,36 2,26 2,12" fill="rgba(201,169,110,0.12)" stroke="rgba(201,169,110,0.6)" stroke-width="1.2"/>
+        <polygon points="19,8 30,15 30,23 19,30 8,23 8,15" fill="rgba(201,169,110,0.08)" stroke="rgba(201,169,110,0.3)" stroke-width="0.8"/>
+        <circle cx="19" cy="19" r="4" fill="#c9a96e" opacity="0.9"/>
+      </svg>
     </div>
-    <div class="header-sub">AI Агентство · Telegram боты · Автоматизация</div>
+    <div class="logo-name">Obsidian</div>
   </div>
-
-  <!-- Stats -->
-  <div class="stats fade-in">
-    <div class="stat">
-      <span class="stat-num">50+</span>
-      <span class="stat-label">Проектов</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num">3 дня</span>
-      <span class="stat-label">Срок бота</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num">30 дн</span>
-      <span class="stat-label">Поддержка</span>
-    </div>
-  </div>
-
-  <!-- Products -->
-  <div class="section fade-in">
-    <div class="section-title">Наши продукты</div>
-
-    <div class="product-card" onclick="openModal('vizitka')">
-      <div class="product-top">
-        <div class="product-icon icon-cyan">🪄</div>
-        <div class="product-info">
-          <div class="product-name">Бот-визитка</div>
-          <div class="product-desc">Telegram бот вместо сайта. Услуги, цены, заявки — всё в одном месте</div>
-        </div>
-      </div>
-      <div class="product-footer">
-        <div class="product-price">25 000 ₽ <span>от</span></div>
-        <div class="product-days">3 дня</div>
-      </div>
-      <div class="product-features">
-        <span class="feature-tag">Меню услуг</span>
-        <span class="feature-tag">Приём заявок</span>
-        <span class="feature-tag">Контакты</span>
-      </div>
-    </div>
-
-    <div class="product-card featured" onclick="openModal('booking')">
-      <div class="product-top">
-        <div class="product-icon icon-purple">📅</div>
-        <div class="product-info">
-          <div class="product-name">Бот для записи</div>
-          <div class="product-desc">Онлайн-запись клиентов 24/7 с напоминаниями и управлением расписанием</div>
-        </div>
-      </div>
-      <div class="product-footer">
-        <div class="product-price">35 000 ₽ <span>от</span></div>
-        <div class="product-days">5 дней</div>
-      </div>
-      <div class="product-features">
-        <span class="feature-tag">Запись онлайн</span>
-        <span class="feature-tag">Напоминания</span>
-        <span class="feature-tag">Расписание</span>
-        <span class="feature-tag">CRM</span>
-      </div>
-    </div>
-
-    <div class="product-card" onclick="openModal('automation')">
-      <div class="product-top">
-        <div class="product-icon icon-gold">⚙️</div>
-        <div class="product-info">
-          <div class="product-name">n8n Автоматизация</div>
-          <div class="product-desc">Убираем рутину навсегда. Отчёты, уведомления, интеграции — работают сами</div>
-        </div>
-      </div>
-      <div class="product-footer">
-        <div class="product-price">35 000 ₽ <span>от</span></div>
-        <div class="product-days">5-7 дней</div>
-      </div>
-      <div class="product-features">
-        <span class="feature-tag">Bitrix24</span>
-        <span class="feature-tag">amoCRM</span>
-        <span class="feature-tag">Google Sheets</span>
-        <span class="feature-tag">Отчёты</span>
-      </div>
-    </div>
-
-    <div class="product-card" onclick="openModal('ai')">
-      <div class="product-top">
-        <div class="product-icon icon-green">🤖</div>
-        <div class="product-info">
-          <div class="product-name">AI Агент</div>
-          <div class="product-desc">Умный помощник для бизнеса. Отвечает клиентам, обрабатывает заявки, учится</div>
-        </div>
-      </div>
-      <div class="product-footer">
-        <div class="product-price">60 000 ₽ <span>от</span></div>
-        <div class="product-days">7-14 дней</div>
-      </div>
-      <div class="product-features">
-        <span class="feature-tag">GPT/Claude</span>
-        <span class="feature-tag">Память</span>
-        <span class="feature-tag">Интеграции</span>
-        <span class="feature-tag">Обучение</span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Guarantee -->
-  <div class="guarantee fade-in">
-    <div class="guarantee-icon">🛡️</div>
-    <div class="guarantee-text"><b>Гарантия 30 дней.</b> Правки и доработки после сдачи — бесплатно. Предоплата 50%, остаток после результата.</div>
-  </div>
-
-  <!-- Process -->
-  <div class="section fade-in">
-    <div class="section-title">Как работаем</div>
-    <div class="process-steps">
-      <div class="process-step">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <div class="step-title">Обсуждаем задачу</div>
-          <div class="step-desc">Разбираем ваш бизнес, цели и подбираем оптимальное решение</div>
-        </div>
-      </div>
-      <div class="process-step">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <div class="step-title">Предоплата 50%</div>
-          <div class="step-desc">Закрепляем ваш слот и начинаем работу на следующий день</div>
-        </div>
-      </div>
-      <div class="process-step">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <div class="step-title">Сдаём результат</div>
-          <div class="step-desc">В срок передаём готовый продукт и обучаем как пользоваться</div>
-        </div>
-      </div>
-      <div class="process-step">
-        <div class="step-num">4</div>
-        <div class="step-content">
-          <div class="step-title">Поддержка 30 дней</div>
-          <div class="step-desc">Остаток оплаты и месяц правок. Вы остаётесь довольны</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reviews -->
-  <div class="section fade-in">
-    <div class="section-title">Отзывы клиентов</div>
-
-    <div class="review-card">
-      <div class="review-top">
-        <div class="reviewer-avatar">💈</div>
-        <div>
-          <div class="reviewer-name">Максим К.</div>
-          <div class="reviewer-biz">Барбершоп "Форма"</div>
-        </div>
-        <div class="stars">★★★★★</div>
-      </div>
-      <div class="review-text">"Поставили бот для записи — телефон перестал звонить по ночам. Клиенты записываются сами, напоминания приходят автоматически. Окупился за первую неделю."</div>
-    </div>
-
-    <div class="review-card">
-      <div class="review-top">
-        <div class="reviewer-avatar">🏪</div>
-        <div>
-          <div class="reviewer-name">Анна В.</div>
-          <div class="reviewer-biz">Онлайн-магазин</div>
-        </div>
-        <div class="stars">★★★★★</div>
-      </div>
-      <div class="review-text">"Настроили автоматические отчёты — 3 часа в день освободилось. Данные из разных систем сами собираются и приходят в Telegram каждое утро."</div>
-    </div>
-
-  </div>
-
-  <!-- CTA -->
-  <div class="cta-section fade-in">
-    <div class="cta-card">
-      <div class="cta-title">Готовы обсудить ваш проект?</div>
-      <div class="cta-sub">Бесплатная консультация. Расскажем что подойдёт именно вашему бизнесу.</div>
-      <div class="cta-slots">Осталось 2 свободных слота на этой неделе</div>
-      <button class="btn-primary" onclick="orderNow()">Написать менеджеру</button>
-      <button class="btn-secondary" onclick="showPaymentInfo()">Условия оплаты</button>
-    </div>
-  </div>
-
+  <div class="hdr-badge">Агентство</div>
 </div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="modal" onclick="closeModal(event)">
-  <div class="modal" id="modal-content">
-    <div class="modal-handle"></div>
-    <div class="modal-icon" id="modal-icon"></div>
-    <div class="modal-title" id="modal-title"></div>
-    <div class="modal-price" id="modal-price"></div>
-    <div class="modal-features" id="modal-features"></div>
-    <button class="btn-primary" onclick="orderThis()">Заказать этот продукт</button>
+<!-- HERO -->
+<div class="hero fi">
+  <div class="hero-tag">Telegram · Автоматизация · AI</div>
+  <h1>Ваш бизнес<br>работает <em>24/7</em></h1>
+  <div class="hero-sub">Делаем ботов, лендинги и автоматизацию которые приносят клиентов пока вы спите</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row fi">
+  <div class="stat"><span class="stat-n">50+</span><span class="stat-l">Проектов</span></div>
+  <div class="stat"><span class="stat-n">3 дня</span><span class="stat-l">На бот</span></div>
+  <div class="stat"><span class="stat-n">30 дн</span><span class="stat-l">Гарантия</span></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs fi" id="tabs">
+  <div class="tab on" onclick="switchTab('all',this)">Все</div>
+  <div class="tab" onclick="switchTab('bot',this)">Боты</div>
+  <div class="tab" onclick="switchTab('web',this)">Сайты</div>
+  <div class="tab" onclick="switchTab('auto',this)">Автоматизация</div>
+  <div class="tab" onclick="switchTab('ai',this)">AI</div>
+</div>
+
+<!-- SERVICES -->
+<div class="sec fi">
+  <div class="sec-ttl">Наши услуги</div>
+  <div class="svc-list" id="svc-list">
+
+    <div class="svc" data-cat="bot" onclick="openModal('vizitka')">
+      <div class="svc-row">
+        <div class="svc-ico ico-a">💎</div>
+        <div class="svc-body">
+          <div class="svc-name">Бот-визитка</div>
+          <div class="svc-desc">Telegram вместо сайта. Меню услуг, прайс, кнопка заявки</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">5 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 3 дня</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Меню</span><span class="tag">Заявки</span><span class="tag">Контакты</span></div>
+    </div>
+
+    <div class="svc hot" data-cat="bot" onclick="openModal('booking')">
+      <div class="svc-row">
+        <div class="svc-ico ico-b">📅</div>
+        <div class="svc-body">
+          <div class="svc-name">Бот для записи</div>
+          <div class="svc-desc">Клиент сам выбирает время и мастера. Автонапоминания. Нет двойных броней</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">25 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 5 дней</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Расписание</span><span class="tag">Напоминания</span><span class="tag">CRM</span><span class="tag">Мастера</span></div>
+    </div>
+
+    <div class="svc" data-cat="bot" onclick="openModal('faq')">
+      <div class="svc-ico ico-c">❓</div>
+      <div class="svc-row">
+        <div class="svc-ico ico-c">❓</div>
+        <div class="svc-body">
+          <div class="svc-name">FAQ бот</div>
+          <div class="svc-desc">База знаний в Telegram. Клиент находит ответ сам — вы не тратите время</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">8 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 2 дня</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Вопросы/ответы</span><span class="tag">Поиск</span><span class="tag">Категории</span></div>
+    </div>
+
+    <div class="svc" data-cat="bot" onclick="openModal('payment')">
+      <div class="svc-row">
+        <div class="svc-ico ico-a">💳</div>
+        <div class="svc-body">
+          <div class="svc-name">Оплата в боте</div>
+          <div class="svc-desc">Telegram Pay, ЮКасса, Stripe прямо в боте. Автоматические чеки</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">20 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 4 дня</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Telegram Pay</span><span class="tag">ЮКасса</span><span class="tag">Чеки</span></div>
+    </div>
+
+    <div class="svc" data-cat="web" onclick="openModal('landing')">
+      <div class="svc-row">
+        <div class="svc-ico ico-c">🌐</div>
+        <div class="svc-body">
+          <div class="svc-name">Лендинг-сайт</div>
+          <div class="svc-desc">Красивый сайт на GitHub Pages с вашим доменом. SEO-готово, без хостинга</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">8 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 1 день</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Домен</span><span class="tag">SEO</span><span class="tag">GitHub Pages</span><span class="tag">Бесплатный хостинг</span></div>
+    </div>
+
+    <div class="svc" data-cat="auto" onclick="openModal('n8n')">
+      <div class="svc-row">
+        <div class="svc-ico ico-d">⚡</div>
+        <div class="svc-body">
+          <div class="svc-name">n8n Автоматизация</div>
+          <div class="svc-desc">Убираем 1 рутинную задачу навсегда. Работает 24/7 без вашего участия</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">15 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 5 дней</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Автоответы</span><span class="tag">Уведомления</span><span class="tag">Интеграции</span></div>
+    </div>
+
+    <div class="svc" data-cat="auto" onclick="openModal('reports')">
+      <div class="svc-row">
+        <div class="svc-ico ico-e">📊</div>
+        <div class="svc-body">
+          <div class="svc-name">Автоотчёты</div>
+          <div class="svc-desc">Каждое утро отчёт по продажам и заявкам прямо в Telegram. Никакой ручной работы</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">10 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 2 дня</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Ежедневно</span><span class="tag">Google Sheets</span><span class="tag">Telegram</span></div>
+    </div>
+
+    <div class="svc" data-cat="auto" onclick="openModal('leads')">
+      <div class="svc-row">
+        <div class="svc-ico ico-b">📬</div>
+        <div class="svc-body">
+          <div class="svc-name">Сбор лидов</div>
+          <div class="svc-desc">Форма → Telegram мгновенно. Интеграция с сайтом, рекламой, любыми источниками</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">12 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 2 дня</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Лиды в TG</span><span class="tag">CRM</span><span class="tag">Мгновенно</span></div>
+    </div>
+
+    <div class="svc" data-cat="auto" onclick="openModal('broadcast')">
+      <div class="svc-row">
+        <div class="svc-ico ico-a">📣</div>
+        <div class="svc-body">
+          <div class="svc-name">Рассылка</div>
+          <div class="svc-desc">Массовая рассылка по базе клиентов. Сегментация, расписание, статистика</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">15 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 3 дня</div>
+      </div>
+      <div class="svc-tags"><span class="tag">База клиентов</span><span class="tag">Расписание</span><span class="tag">Статистика</span></div>
+    </div>
+
+    <div class="svc" data-cat="auto" onclick="openModal('crm')">
+      <div class="svc-row">
+        <div class="svc-ico ico-d">🗂</div>
+        <div class="svc-body">
+          <div class="svc-name">CRM интеграция</div>
+          <div class="svc-desc">Подключим amoCRM или Битрикс24 к боту. Все сделки и клиенты под контролем</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">35 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 5-7 дней</div>
+      </div>
+      <div class="svc-tags"><span class="tag">amoCRM</span><span class="tag">Битрикс24</span><span class="tag">Сделки</span></div>
+    </div>
+
+    <div class="svc hot" data-cat="ai" onclick="openModal('ai')">
+      <div class="svc-row">
+        <div class="svc-ico ico-b">🧠</div>
+        <div class="svc-body">
+          <div class="svc-name">AI Агент</div>
+          <div class="svc-desc">Умный бот на Claude или GPT. Отвечает клиентам, принимает заявки, помнит контекст</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">60 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 7-14 дней</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Claude / GPT</span><span class="tag">Память</span><span class="tag">Обучение</span><span class="tag">Интеграции</span></div>
+    </div>
+
+    <div class="svc" data-cat="web" onclick="openModal('deploy')">
+      <div class="svc-row">
+        <div class="svc-ico ico-e">🚀</div>
+        <div class="svc-body">
+          <div class="svc-name">Deploy на Render</div>
+          <div class="svc-desc">Публикуем бот на хостинге. Работает 24/7 без вашего сервера</div>
+        </div>
+      </div>
+      <div class="svc-foot">
+        <div class="svc-price">5 000 ₽ <small>от</small></div>
+        <div class="svc-days">⚡ 1 день</div>
+      </div>
+      <div class="svc-tags"><span class="tag">Render</span><span class="tag">24/7</span><span class="tag">Бесплатный тариф</span></div>
+    </div>
+
   </div>
 </div>
 
-<!-- Payment Modal -->
-<div class="modal-overlay" id="payment-modal" onclick="closePaymentModal(event)">
+<!-- GUARANTEE -->
+<div class="guar fi">
+  <div class="guar-ico">🛡️</div>
+  <div class="guar-txt"><b>Гарантия 30 дней.</b> Правки после сдачи бесплатно. Предоплата 50% — остаток после результата.</div>
+</div>
+
+<!-- PROCESS -->
+<div class="sec fi">
+  <div class="sec-ttl">Как работаем</div>
+  <div class="steps">
+    <div class="step"><div class="step-n">1</div><div class="step-body"><div class="step-t">Обсуждаем задачу</div><div class="step-d">Рассказываете о бизнесе — подбираем решение и называем цену. Бесплатно.</div></div></div>
+    <div class="step"><div class="step-n">2</div><div class="step-body"><div class="step-t">Предоплата 50% — начинаем</div><div class="step-d">Дамир берётся за работу и присылает прогресс на следующий день.</div></div></div>
+    <div class="step"><div class="step-n">3</div><div class="step-body"><div class="step-t">Сдаём и обучаем</div><div class="step-d">Передаём готовый продукт, показываем как пользоваться. Платите остаток.</div></div></div>
+    <div class="step"><div class="step-n">4</div><div class="step-body"><div class="step-t">Поддержка 30 дней</div><div class="step-d">Бесплатные правки в течение месяца. Остаётесь довольны.</div></div></div>
+  </div>
+</div>
+
+<!-- REVIEWS -->
+<div class="sec fi">
+  <div class="sec-ttl">Отзывы клиентов</div>
+  <div class="rev-list">
+    <div class="rev">
+      <div class="rev-top">
+        <div class="rev-av">💈</div>
+        <div class="rev-who"><div class="rev-name">Максим К.</div><div class="rev-biz">Барбершоп</div></div>
+        <div class="rev-stars">★★★★★</div>
+      </div>
+      <div class="rev-txt">«Бот для записи сделали за 4 дня. Теперь запись идёт сама, я только смотрю в CRM. Окупился за неделю.»</div>
+    </div>
+    <div class="rev">
+      <div class="rev-top">
+        <div class="rev-av">🏪</div>
+        <div class="rev-who"><div class="rev-name">Анна В.</div><div class="rev-biz">Онлайн-магазин</div></div>
+        <div class="rev-stars">★★★★★</div>
+      </div>
+      <div class="rev-txt">«Автоотчёты настроили за 3 часа. Каждое утро данные по продажам прямо в Telegram.»</div>
+    </div>
+    <div class="rev">
+      <div class="rev-top">
+        <div class="rev-av">💆</div>
+        <div class="rev-who"><div class="rev-name">Карина М.</div><div class="rev-biz">Массажный кабинет</div></div>
+        <div class="rev-stars">★★★★★</div>
+      </div>
+      <div class="rev-txt">«Лендинг с доменом за 1 день — думала невозможно. Клиенты говорят сайт выглядит дорого!»</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-wrap fi">
+  <div class="cta-box">
+    <div class="cta-t">Обсудим ваш проект?</div>
+    <div class="cta-s">Первая консультация бесплатно. Расскажите задачу — ответим за час.</div>
+    <div class="cta-slots">Осталось 2 свободных слота</div>
+    <button class="btn-main" onclick="orderNow()">Написать нам →</button>
+    <button class="btn-sec" onclick="showPayModal()">Условия оплаты</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- SERVICE MODAL -->
+<div class="overlay" id="svc-modal" onclick="closeModal(event,'svc-modal')">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-icon">💳</div>
-    <div class="modal-title" style="margin-bottom:20px">Условия оплаты</div>
-    <div class="payment-row">💰 <div><b>Предоплата 50%</b><br>При старте работ</div></div>
-    <div class="payment-row">✅ <div><b>Остаток 50%</b><br>После сдачи результата</div></div>
-    <div class="payment-row">🏦 <div><b>Альфа Банк</b><br>+7 901 772 55 91<br>Рустамов Ахмаджон Юнусович</div></div>
-    <div class="payment-row">🛡️ <div><b>Гарантия 30 дней</b><br>Правки после сдачи бесплатно</div></div>
-    <button class="btn-primary" style="margin-top:16px" onclick="closePaymentModal()">Понятно</button>
+    <div class="modal-pull"></div>
+    <div class="modal-ico" id="m-ico"></div>
+    <div class="modal-ttl" id="m-ttl"></div>
+    <div class="modal-price" id="m-price"></div>
+    <div class="modal-feats" id="m-feats"></div>
+    <button class="btn-main" onclick="orderThis()">Заказать →</button>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="overlay" id="pay-modal" onclick="closeModal(event,'pay-modal')">
+  <div class="modal">
+    <div class="modal-pull"></div>
+    <div class="modal-ico">💳</div>
+    <div class="modal-ttl" style="margin-bottom:18px">Условия оплаты</div>
+    <div class="pay-row">💰 <div><b>Предоплата 50%</b>При старте работ</div></div>
+    <div class="pay-row">✅ <div><b>Остаток 50%</b>После сдачи результата</div></div>
+    <div class="pay-row">🏦 <div><b>Альфа Банк</b>+7 901 772 55 91 · Рустамов Ахмаджон Юнусович</div></div>
+    <div class="pay-row">🛡️ <div><b>Гарантия 30 дней</b>Правки после сдачи бесплатно</div></div>
+    <button class="btn-main" style="margin-top:16px" onclick="closeById('pay-modal')">Понятно</button>
   </div>
 </div>
 
 <script>
-  // Telegram Web App init
-  if (window.Telegram && window.Telegram.WebApp) {
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-    document.documentElement.style.setProperty('--bg', '#0a0a0f');
+if(window.Telegram&&window.Telegram.WebApp){
+  const tg=window.Telegram.WebApp;
+  tg.ready();tg.expand();
+}
+
+const PRODUCTS={
+  vizitka:{ico:'💎',ttl:'Бот-визитка',price:'от 5 000 ₽',feats:['Красивое главное меню с кнопками','Страницы: о нас, услуги, цены','Форма приёма заявок','Уведомления о новых заявках','Срок: 3 рабочих дня','Поддержка 30 дней']},
+  booking:{ico:'📅',ttl:'Бот для записи',price:'от 25 000 ₽',feats:['Выбор услуги, мастера и времени','Автонапоминания за 2 часа','Управление расписанием','Список записей и их отмена','Уведомления администратору','Срок: 5 рабочих дней','Поддержка 30 дней']},
+  faq:{ico:'❓',ttl:'FAQ бот',price:'от 8 000 ₽',feats:['База вопросов и ответов','Поиск по ключевым словам','Разделы и категории','Клиент находит ответ без вас','Срок: 2 рабочих дня','Поддержка 30 дней']},
+  payment:{ico:'💳',ttl:'Оплата в боте',price:'от 20 000 ₽',feats:['Telegram Pay, ЮКасса или Stripe','Автоматические чеки','Каталог товаров/услуг','Уведомления об оплатах','Срок: 4 рабочих дня','Поддержка 30 дней']},
+  landing:{ico:'🌐',ttl:'Лендинг-сайт',price:'от 8 000 ₽',feats:['Красивый сайт на GitHub Pages','Подключение вашего домена','SEO-оптимизация','Бесплатный хостинг навсегда','Мобильная версия','Срок: 1 рабочий день','Поддержка 30 дней']},
+  n8n:{ico:'⚡',ttl:'n8n Автоматизация',price:'от 15 000 ₽',feats:['Анализ вашей рутины','Автоответы и уведомления','Интеграция с Google Sheets','Подключение к CRM/сервисам','Работает 24/7 без участия','Срок: 5 рабочих дней','Поддержка 30 дней']},
+  reports:{ico:'📊',ttl:'Автоотчёты',price:'от 10 000 ₽',feats:['Ежедневный отчёт в Telegram','Данные из Google Sheets / CRM','Настройка расписания','Продажи, заявки, статистика','Срок: 2 рабочих дня','Поддержка 30 дней']},
+  leads:{ico:'📬',ttl:'Сбор лидов',price:'от 12 000 ₽',feats:['Форма на сайте → TG мгновенно','Интеграция с рекламой','Уведомления менеджеру','Сохранение в Google Sheets','Автоответ клиенту','Срок: 2 рабочих дня','Поддержка 30 дней']},
+  broadcast:{ico:'📣',ttl:'Рассылка',price:'от 15 000 ₽',feats:['Массовая рассылка по базе','Сегментация аудитории','Расписание отправок','Статистика открытий','Кнопки в сообщениях','Срок: 3 рабочих дня','Поддержка 30 дней']},
+  crm:{ico:'🗂',ttl:'CRM интеграция',price:'от 35 000 ₽',feats:['Подключение amoCRM или Битрикс24','Автоматические сделки','Синхронизация клиентов','Уведомления по этапам','Интеграция с ботом','Срок: 5-7 рабочих дней','Поддержка 30 дней']},
+  ai:{ico:'🧠',ttl:'AI Агент',price:'от 60 000 ₽',feats:['Умный бот на Claude или GPT','Помнит историю разговора','Отвечает на вопросы о бизнесе','Принимает и обрабатывает заявки','Интеграция с вашими системами','Срок: 7-14 рабочих дней','Поддержка 30 дней']},
+  deploy:{ico:'🚀',ttl:'Deploy на Render',price:'от 5 000 ₽',feats:['Публикация бота на сервере','Работает 24/7 без вашего сервера','Автоперезапуск при падении','Бесплатный тариф Render','Настройка переменных окружения','Срок: 1 рабочий день','Поддержка 30 дней']}
+};
+
+let curProd='';
+
+function openModal(id){
+  curProd=id;
+  const p=PRODUCTS[id];
+  document.getElementById('m-ico').textContent=p.ico;
+  document.getElementById('m-ttl').textContent=p.ttl;
+  document.getElementById('m-price').textContent=p.price;
+  document.getElementById('m-feats').innerHTML=p.feats.map(f=>`<div class="modal-feat"><span class="chk">✦</span>${f}</div>`).join('');
+  document.getElementById('svc-modal').classList.add('on');
+}
+
+function closeModal(e,id){
+  if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('on');
+}
+function closeById(id){ document.getElementById(id).classList.remove('on'); }
+function showPayModal(){ document.getElementById('pay-modal').classList.add('on'); }
+
+function orderThis(){
+  closeById('svc-modal');
+  setTimeout(orderNow,300);
+}
+
+function orderNow(){
+  if(window.Telegram&&window.Telegram.WebApp){
+    window.Telegram.WebApp.sendData(JSON.stringify({action:'order',product:curProd||'consultation'}));
+  } else {
+    window.open('https://t.me/Bloge11r_bot','_blank');
   }
+}
 
-  const products = {
-    vizitka: {
-      icon: '🪄', title: 'Бот-визитка', price: 'от 25 000 ₽',
-      features: ['Красивое главное меню с кнопками', 'Страницы: о нас, услуги, цены', 'Форма приёма заявок', 'Уведомления вам о новых заявках', 'Кнопка связи с менеджером', 'Срок: 3 рабочих дня', 'Поддержка 30 дней']
-    },
-    booking: {
-      icon: '📅', title: 'Бот для записи', price: 'от 35 000 ₽',
-      features: ['Выбор услуги, мастера и времени', 'Автоматические напоминания за 2 часа', 'Управление расписанием', 'Список записей и их отмена', 'Уведомления администратору', 'Срок: 5 рабочих дней', 'Поддержка 30 дней']
-    },
-    automation: {
-      icon: '⚙️', title: 'n8n Автоматизация', price: 'от 35 000 ₽',
-      features: ['Анализ вашей рутины', 'Подключение к Google Sheets / CRM', 'Автоматические отчёты в Telegram', 'Уведомления о заявках и событиях', 'Интеграция Bitrix24 или amoCRM', 'Срок: 5-7 рабочих дней', 'Поддержка 30 дней']
-    },
-    ai: {
-      icon: '🤖', title: 'AI Агент', price: 'от 60 000 ₽',
-      features: ['Умный чат-бот на базе GPT или Claude', 'Помнит историю разговора', 'Отвечает на вопросы о вашем бизнесе', 'Принимает и обрабатывает заявки', 'Интеграция с вашими системами', 'Срок: 7-14 рабочих дней', 'Поддержка 30 дней']
-    }
-  };
+function switchTab(cat,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.svc').forEach(s=>{
+    if(cat==='all'||s.dataset.cat===cat) s.style.display='';
+    else s.style.display='none';
+  });
+}
 
-  let currentProduct = '';
-
-  function openModal(type) {
-    currentProduct = type;
-    const p = products[type];
-    document.getElementById('modal-icon').textContent = p.icon;
-    document.getElementById('modal-title').textContent = p.title;
-    document.getElementById('modal-price').textContent = p.price;
-    document.getElementById('modal-features').innerHTML = p.features.map(f =>
-      `<div class="modal-feature"><span class="check">✓</span>${f}</div>`
-    ).join('');
-    document.getElementById('modal').classList.add('active');
-  }
-
-  function closeModal(e) {
-    if (e.target === document.getElementById('modal')) {
-      document.getElementById('modal').classList.remove('active');
-    }
-  }
-
-  function showPaymentInfo() {
-    document.getElementById('payment-modal').classList.add('active');
-  }
-
-  function closePaymentModal(e) {
-    if (!e || e.target === document.getElementById('payment-modal')) {
-      document.getElementById('payment-modal').classList.remove('active');
-    }
-  }
-
-  function orderThis() {
-    document.getElementById('modal').classList.remove('active');
-    setTimeout(orderNow, 300);
-  }
-
-  function orderNow() {
-    if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.sendData(JSON.stringify({
-        action: 'order',
-        product: currentProduct || 'consultation'
-      }));
-    } else {
-      window.open('https://t.me/manager', '_blank');
-    }
-  }
+// Fix double svc-ico bug in faq card
+document.querySelectorAll('.svc').forEach(s=>{
+  const icons=s.querySelectorAll('.svc-ico');
+  if(icons.length>1) icons[0].remove();
+});
 </script>
 </body>
 </html>
